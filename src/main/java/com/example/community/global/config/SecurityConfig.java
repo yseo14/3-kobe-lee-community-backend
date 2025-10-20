@@ -26,6 +26,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)  // 기본 로그인 폼 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable)  // 기본 HTTP Basic 인증 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth").permitAll()          // 로그인
                         .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입

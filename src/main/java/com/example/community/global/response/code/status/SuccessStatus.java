@@ -33,6 +33,8 @@ public enum SuccessStatus implements BaseCode {
     DELETE_COMMENT(HttpStatus.OK,"200_018", "댓글을 삭제하였습니다."),
     UPDATE_COMMENT(HttpStatus.OK,"200_019", "댓글을 수정하였습니다."),
     GET_COMMENT_LIST(HttpStatus.OK,"200_020", "댓글 목록을 조회하였습니다."),
+    REFRESH_SUCCESS(HttpStatus.OK,"200_021", "토큰을 재발급하였습니다."),
+
     ;
 
 

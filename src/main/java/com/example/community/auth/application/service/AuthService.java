@@ -3,10 +3,13 @@ package com.example.community.auth.application.service;
 import com.example.community.auth.api.dto.LoginRequest;
 import com.example.community.auth.api.dto.LoginResponse;
 import com.example.community.auth.api.dto.LogoutResponse;
+import com.example.community.auth.api.dto.RefreshResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthService {
-    public LoginResponse login(LoginRequest request);
+    LoginResponse login(LoginRequest request);
 
-    public LogoutResponse logout(HttpServletRequest request);
+    LogoutResponse logout(HttpServletRequest request);
+
+    RefreshResponse refresh(String refreshToken);
 }

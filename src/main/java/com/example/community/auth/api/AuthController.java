@@ -7,7 +7,10 @@ import com.example.community.auth.application.service.AuthService;
 import com.example.community.global.response.ApiResponse;
 import com.example.community.global.response.code.status.SuccessStatus;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,8 +25,20 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping
-    public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request,
+                                            HttpServletResponse httpServletResponse) {
         LoginResponse loginResponse = authService.login(request);
+        String refreshToken = loginResponse.refreshToken();
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true) //  클라이언트나 스크립트에서 조작하지 못하도록 함
+                .secure(false)                // 운영환경(HTTPS)에서는 true
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)   // 7일
+                .sameSite("None")
+                .secure(false)  // localhost에서만 예외 허용
+                .build();
+        httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ApiResponse.onSuccess(SuccessStatus.LOGIN_SUCCESS, loginResponse);
     }
 

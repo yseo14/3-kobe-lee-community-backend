@@ -37,14 +37,20 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         // 경로 매칭을 위한 AntPathMatcher 사용
         AntPathMatcher pathMatcher = new AntPathMatcher();
+        log.info("Request URI = {}", httpRequest.getRequestURI());
+        log.info("Resolved path = {}", path);
+
 
         // 인증이 필요하지 않은 경로에 대해 필터를 건너뛴다.
         if ((pathMatcher.match("/auth", path) && "POST".equalsIgnoreCase(method)) ||  // 로그인만 허용
+                (pathMatcher.match("/auth/refresh", path) && "POST".equalsIgnoreCase(method)) || // 토큰 재발급 허용
                 (pathMatcher.match("/member", path) && "POST".equalsIgnoreCase(method)) || // 회원가입만 허용
                 (pathMatcher.match("/member/email", path) && "GET".equalsIgnoreCase(method)) ||
                 (pathMatcher.match("/member/nickname", path) && "GET".equalsIgnoreCase(method))) {
 
+            log.info("🔹 Skipping JWT filter for path: {}", path);
             chain.doFilter(request, response);
+            log.info("🔸 Chain executed successfully for path: {}", path);
             return;
         }
 

@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth").permitAll()          // 로그인
+                        .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()  //  토큰 재발급
                         .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입
                         .requestMatchers(HttpMethod.GET, "/member/email").permitAll()   // 이메일 중복 확인
                         .requestMatchers(HttpMethod.GET, "/member/nickname").permitAll()// 닉네임 중복 확인

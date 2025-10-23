@@ -1,7 +1,6 @@
 package com.example.community.global.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.web.cors.CorsConfiguration;
@@ -13,28 +12,27 @@ public class CorsConfig {
     public static CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        //리소스를 허용할 URL 지정
-        ArrayList<String> allowedOriginPatterns = new ArrayList<>();
-        allowedOriginPatterns.add("http://localhost:3000");
-        allowedOriginPatterns.add("http://127.0.0.1:3000");
-        configuration.setAllowedOrigins(allowedOriginPatterns);
+        // 허용할 Origin 패턴 (정확히 일치하거나 패턴 매칭 허용)
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:3000"
+        ));
 
-        //허용하는 HTTP METHOD 지정
-        ArrayList<String> allowedHttpMethods = new ArrayList<>();
-        allowedHttpMethods.add("GET");
-        allowedHttpMethods.add("POST");
-        allowedHttpMethods.add("PATCH");
-        allowedHttpMethods.add("DELETE");
-        configuration.setAllowedMethods(allowedHttpMethods);
+        // 허용할 HTTP 메서드
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE"));
 
-        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        // 허용할 헤더
+        configuration.addAllowedHeader("*");
 
-        //인증, 인가를 위한 credentials 를 TRUE로 설정
+        // 인증 정보(쿠키 등) 포함 허용
         configuration.setAllowCredentials(true);
 
+        // 응답 헤더로 노출할 헤더 (선택)
+        configuration.addExposedHeader("Authorization");
+        configuration.addExposedHeader("Set-Cookie");
+
+        // 경로 매핑
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 }

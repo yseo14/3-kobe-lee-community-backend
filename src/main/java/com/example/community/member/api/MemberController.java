@@ -72,10 +72,26 @@ public class MemberController {
         return ApiResponse.onSuccess(SuccessStatus.SIGNUP_SUCCESS, SignUpMapper.toSignUpResponse(member));
     }
 
+    /**
+     * 사용자 id로 정보 조회하기
+     * 다른 사용자의 프로필 정보를 조회하는 기능
+     * @param memberId: 조회할 사용자의 memberId
+     * @return
+     */
     @GetMapping("/{memberId}")
     public ApiResponse<InfoResponse> getMemberInfo(@PathVariable Long memberId) {
         Member member = memberService.getMemberInfo(memberId);
         return ApiResponse.onSuccess(SuccessStatus.MEMBER_INFO_FOUND, InfoMapper.toInfoResponse(member));
+    }
+
+    /**
+     * header의 accessToken으로 사용자 자신의 정보를 조회하기
+     * @param httpServletRequest: header에서 accessToken을 읽기 위해서
+     * @return
+     */
+    @GetMapping
+    public ApiResponse<InfoResponse> getMyInfo(HttpServletRequest httpServletRequest) {
+        return ApiResponse.onSuccess(SuccessStatus.MEMBER_INFO_FOUND, memberService.getMyInfo(httpServletRequest));
     }
 
     @PatchMapping

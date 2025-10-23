@@ -6,9 +6,11 @@ import com.example.community.global.exception.GeneralException;
 import com.example.community.global.response.code.status.ErrorStatus;
 import com.example.community.image.domain.Image;
 import com.example.community.image.repository.ImageRepository;
+import com.example.community.member.api.dto.InfoResponse;
 import com.example.community.member.api.dto.SignUpRequest;
 import com.example.community.member.api.dto.UpdateInfoRequest;
 import com.example.community.member.api.dto.UpdatePasswordRequest;
+import com.example.community.member.application.mapper.InfoMapper;
 import com.example.community.member.application.mapper.SignUpMapper;
 import com.example.community.member.domain.Member;
 import com.example.community.member.exception.DefaultImageNotFoundException;
@@ -123,6 +125,15 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findById(Long.parseLong(memberId)).orElseThrow(MemberNotFoundException::new);
 
         return member.deleteMember(LocalDateTime.now());
+    }
+
+    @Override
+    public InfoResponse getMyInfo(HttpServletRequest httpServletRequest) {
+        String accessToken = jwtUtils.resolveToken(httpServletRequest);
+        String memberId = jwtUtils.getUserNameFromToken(accessToken);
+        Member member = memberRepository.findById(Long.parseLong(memberId)).orElseThrow(MemberNotFoundException::new);
+
+        return InfoMapper.toInfoResponse(member);
     }
 
 }

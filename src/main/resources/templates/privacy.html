@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">개인정보처리방침</title>
+    <meta name="description" content="[[${companyName}]]의 개인정보처리방침 페이지입니다.">
+</head>
+<body>
+<header>
+    <h1 th:text="${pageTitle}">개인정보처리방침</h1>
+    <p>최종 업데이트일: <span th:text="${lastUpdated}"></span></p>
+</header>
+
+<nav>
+    <ol>
+        <li><a href="#collect">1. 수집하는 개인정보 항목 및 수집 방법</a></li>
+        <li><a href="#use">2. 개인정보의 이용 목적</a></li>
+        <li><a href="#share">3. 개인정보의 제3자 제공</a></li>
+        <li><a href="#retain">4. 개인정보의 보유 및 이용 기간</a></li>
+        <li><a href="#rights">5. 이용자의 권리 및 행사 방법</a></li>
+        <li><a href="#security">6. 개인정보의 안전성 확보 조치</a></li>
+        <li><a href="#cookies">7. 쿠키의 사용</a></li>
+        <li><a href="#contact">8. 개인정보 보호책임자 및 연락처</a></li>
+    </ol>
+</nav>
+
+<hr>
+
+<section id="collect">
+    <h2>1. 수집하는 개인정보 항목 및 수집 방법</h2>
+    <p>[[${companyName}]](이하 "회사")는 회원가입, 서비스 이용, 문의 접수 등을 위해 아래와 같은 개인정보를 수집할 수 있습니다.</p>
+    <ul>
+        <li>필수항목: 이름, 이메일, 비밀번호, 휴대전화번호</li>
+        <li>선택항목: 생년월일, 주소</li>
+        <li>자동수집항목: 접속 IP, 쿠키, 접속 로그, 서비스 이용 기록</li>
+    </ul>
+</section>
+
+<section id="use">
+    <h2>2. 개인정보의 이용 목적</h2>
+    <ul>
+        <li>회원 식별 및 본인확인</li>
+        <li>서비스 제공 및 이용 관련 민원 처리</li>
+        <li>신규 서비스 개발 및 맞춤형 서비스 제공</li>
+        <li>법적 의무 이행 및 분쟁 해결</li>
+    </ul>
+</section>
+
+<section id="share">
+    <h2>3. 개인정보의 제3자 제공</h2>
+    <p>회사는 이용자의 개인정보를 원칙적으로 외부에 제공하지 않습니다. 다만 아래의 경우 예외적으로 제공될 수 있습니다.</p>
+    <ul>
+        <li>이용자가 사전에 동의한 경우</li>
+        <li>법령에 근거가 있는 경우</li>
+    </ul>
+</section>
+
+<section id="retain">
+    <h2>4. 개인정보의 보유 및 이용 기간</h2>
+    <p>회사는 원칙적으로 개인정보의 수집 및 이용 목적이 달성되면 지체 없이 해당 정보를 파기합니다. 단, 다음의 정보는 아래 기간 동안 보관합니다.</p>
+    <ul>
+        <li>회원탈퇴 시 보존 항목: 이름, 이메일 — 30일 (재가입 제한 목적)</li>
+        <li>법령에 따른 보존: 계약 및 청약철회 기록 (5년), 전자금융거래 기록 (5년), 소비자 불만 처리 기록 (3년)</li>
+    </ul>
+</section>
+
+<section id="rights">
+    <h2>5. 이용자의 권리 및 행사 방법</h2>
+    <p>이용자는 언제든지 자신의 개인정보를 조회하거나 수정할 수 있으며, 삭제 및 처리정지를 요청할 수 있습니다. 관련 요청은 아래 연락처로 가능합니다.</p>
+</section>
+
+<section id="security">
+    <h2>6. 개인정보의 안전성 확보 조치</h2>
+    <p>회사는 개인정보 보호를 위하여 다음과 같은 조치를 취하고 있습니다.</p>
+    <ul>
+        <li>관리적 조치: 내부관리계획 수립, 정기 교육</li>
+        <li>기술적 조치: 암호화, 접근통제, 백신 소프트웨어</li>
+        <li>물리적 조치: 서버실 접근 제한</li>
+    </ul>
+</section>
+
+<section id="cookies">
+    <h2>7. 쿠키의 사용</h2>
+    <p>회사는 이용자의 편의를 위해 쿠키를 사용할 수 있습니다. 이용자는 브라우저 설정을 통해 쿠키 저장을 거부할 수 있습니다.</p>
+</section>
+
+<section id="contact">
+    <h2>8. 개인정보 보호책임자 및 연락처</h2>
+    <p>
+        개인정보 보호책임자: 개인정보보호담당자<br>
+        이메일: <a th:href="'mailto:' + ${contactEmail}" th:text="${contactEmail}"></a><br>
+        주소: 서울특별시 강남구 ○○로 123, [[${companyName}]]
+    </p>
+</section>
+
+<footer>
+    <hr>
+    <p>본 방침은 [[${lastUpdated}]]부터 시행됩니다.</p>
+</footer>
+</body>
+</html>

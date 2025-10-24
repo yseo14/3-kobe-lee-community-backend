@@ -33,6 +33,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입
                         .requestMatchers(HttpMethod.GET, "/member/email").permitAll()   // 이메일 중복 확인
                         .requestMatchers(HttpMethod.GET, "/member/nickname").permitAll()// 닉네임 중복 확인
+                        .requestMatchers(HttpMethod.GET, "/terms").permitAll()  // 이용약관 조회
+                        .requestMatchers(HttpMethod.GET, "/privacy").permitAll()  // 개인정보 조회
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)

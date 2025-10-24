@@ -46,7 +46,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 (pathMatcher.match("/auth/refresh", path) && "POST".equalsIgnoreCase(method)) || // 토큰 재발급 허용
                 (pathMatcher.match("/member", path) && "POST".equalsIgnoreCase(method)) || // 회원가입만 허용
                 (pathMatcher.match("/member/email", path) && "GET".equalsIgnoreCase(method)) ||
-                (pathMatcher.match("/member/nickname", path) && "GET".equalsIgnoreCase(method))) {
+                (pathMatcher.match("/member/nickname", path) && "GET".equalsIgnoreCase(method))||
+                (pathMatcher.match("/terms", path) && "GET".equalsIgnoreCase(method))||
+                (pathMatcher.match("/privacy", path) && "GET".equalsIgnoreCase(method))) {
 
             log.info("🔹 Skipping JWT filter for path: {}", path);
             chain.doFilter(request, response);

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">이용약관</title>
+    <meta name="description" content="[[${companyName}]]의 서비스 이용약관 페이지입니다.">
+</head>
+<body>
+<header>
+    <h1 th:text="${pageTitle}">이용약관</h1>
+    <p>최종 업데이트일: <span th:text="${lastUpdated}"></span></p>
+</header>
+
+<nav>
+    <ol>
+        <li><a href="#purpose">1. 목적</a></li>
+        <li><a href="#definitions">2. 정의</a></li>
+        <li><a href="#agreement">3. 약관의 효력 및 변경</a></li>
+        <li><a href="#service">4. 서비스의 제공</a></li>
+        <li><a href="#user">5. 이용자의 의무</a></li>
+        <li><a href="#termination">6. 계약 해지 및 이용 제한</a></li>
+        <li><a href="#disclaimer">7. 면책조항</a></li>
+        <li><a href="#law">8. 준거법 및 관할</a></li>
+    </ol>
+</nav>
+
+<hr>
+
+<section id="purpose">
+    <h2>1. 목적</h2>
+    <p>본 약관은 [[${companyName}]](이하 “회사”)가 제공하는 모든 인터넷 서비스(이하 “서비스”)의 이용과 관련하여 회사와 이용자의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+</section>
+
+<section id="definitions">
+    <h2>2. 정의</h2>
+    <ul>
+        <li>“이용자”란 회사의 서비스에 접속하여 본 약관에 따라 회사가 제공하는 서비스를 이용하는 회원 및 비회원을 말합니다.</li>
+        <li>“회원”이란 회사와 이용계약을 체결한 자를 말합니다.</li>
+    </ul>
+</section>
+
+<section id="agreement">
+    <h2>3. 약관의 효력 및 변경</h2>
+    <p>회사는 본 약관의 내용을 서비스 초기화면 또는 별도의 링크를 통해 게시합니다. 법령 변경 또는 서비스 정책 변경 시 약관을 개정할 수 있으며, 개정된 약관은 공지 후 7일 이후부터 효력이 발생합니다.</p>
+</section>
+
+<section id="service">
+    <h2>4. 서비스의 제공</h2>
+    <ul>
+        <li>회사는 이용자에게 온라인 정보 제공, 콘텐츠 열람, 기타 관련 서비스를 제공합니다.</li>
+        <li>서비스 내용은 회사의 정책에 따라 변경될 수 있습니다.</li>
+    </ul>
+</section>
+
+<section id="user">
+    <h2>5. 이용자의 의무</h2>
+    <ul>
+        <li>이용자는 본 약관 및 관계 법령을 준수해야 합니다.</li>
+        <li>타인의 개인정보를 무단으로 수집하거나 도용해서는 안 됩니다.</li>
+        <li>서비스의 정상적인 운영을 방해하는 행위를 금합니다.</li>
+    </ul>
+</section>
+
+<section id="termination">
+    <h2>6. 계약 해지 및 이용 제한</h2>
+    <p>이용자는 언제든지 회원 탈퇴를 요청할 수 있으며, 회사는 관련 법령에 따라 이를 즉시 처리합니다.
+        회사는 이용자가 약관을 위반한 경우 사전 통지 후 이용을 제한하거나 계약을 해지할 수 있습니다.</p>
+</section>
+
+<section id="disclaimer">
+    <h2>7. 면책조항</h2>
+    <p>회사는 천재지변, 통신 장애 등 불가항력적인 사유로 인한 서비스 중단에 대해 책임을 지지 않습니다.
+        또한 이용자의 귀책사유로 발생한 문제에 대해서는 책임을 지지 않습니다.</p>
+</section>
+
+<section id="law">
+    <h2>8. 준거법 및 관할</h2>
+    <p>본 약관은 대한민국 법률에 따라 해석되며, 서비스 이용과 관련한 분쟁은 서울중앙지방법원을 관할 법원으로 합니다.</p>
+</section>
+
+<footer>
+    <hr>
+    <p>문의: <a th:href="'mailto:' + ${contactEmail}" th:text="${contactEmail}"></a></p>
+    <p>본 약관은 [[${lastUpdated}]]부터 시행됩니다.</p>
+</footer>
+</body>
+</html>

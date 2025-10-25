@@ -30,13 +30,13 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     private final QImage image = QImage.image;
 
     @Override
-    public List<PostPreview> findPostsWithCursor(String sort, int limit, Object cursor) {
-        BooleanExpression cursorCondition = buildCursorCondition(sort, cursor);
-        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(sort);
-
+    public List<PostPreview> findPostsWithCursor(String sort, int limit, Object cursorValue, Long cursorId) {
+        BooleanExpression cursorCondition = buildCursorCondition(sort, cursorValue, cursorId);
+        OrderSpecifier<?>[] orderSpecifier = buildOrderSpecifier(sort);
         return queryFactory
                 .select(Projections.constructor(
                         PostPreview.class,
+                        post.id,
                         post.title,
                         post.likeCount,
                         post.commentCount,
@@ -47,8 +47,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                         post.createdAt
                 ))
                 .from(post)
-                .join(post.writer, QMember.member)
-                .leftJoin(QMember.member.profileImage, image)
+                .join(post.writer, member)
+                .leftJoin(member.profileImage, image)
                 .where(cursorCondition)
                 .orderBy(orderSpecifier)
                 .limit(limit)
@@ -60,6 +60,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         GetPostResponse temp = queryFactory
                 .select(Projections.constructor(
                         GetPostResponse.class,
+                        post.id,
                         member.id,
                         member.nickname,
                         image.objectKey,
@@ -97,6 +98,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 .fetch();
 
         return new GetPostResponse(
+                temp.postId(),
                 temp.memberId(),
                 temp.nickname(),
                 temp.profileImageKey(),
@@ -113,37 +115,60 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     }
 
-    private BooleanExpression buildCursorCondition(String sort, Object cursor) {
-        if (cursor == null) {
-            return null;
+    private BooleanExpression buildCursorCondition(String sort, Object cursorValue, Long cursorId) {
+        if (cursorValue == null || cursorId == null) {
+            return null; // 첫 페이지 요청
         }
 
         switch (sort) {
             case "createdAt":
-                return post.createdAt.lt((LocalDateTime) cursor);
+                return post.createdAt.lt((LocalDateTime) cursorValue)
+                        .or(post.createdAt.eq((LocalDateTime) cursorValue).and(post.id.lt(cursorId)));
+
             case "likes":
-                return post.likeCount.lt((Long) cursor);
+                return post.likeCount.lt((Long) cursorValue)
+                        .or(post.likeCount.eq((Long) cursorValue).and(post.id.lt(cursorId)));
+
             case "comments":
-                return post.commentCount.lt((Long) cursor);
+                return post.commentCount.lt((Long) cursorValue)
+                        .or(post.commentCount.eq((Long) cursorValue).and(post.id.lt(cursorId)));
+
             case "views":
-                return post.viewCount.lt((Long) cursor);
+                return post.viewCount.lt((Long) cursorValue)
+                        .or(post.viewCount.eq((Long) cursorValue).and(post.id.lt(cursorId)));
+
             default:
                 return null;
         }
     }
 
-    private OrderSpecifier<?> buildOrderSpecifier(String sort) {
+    private OrderSpecifier<?>[] buildOrderSpecifier(String sort) {
         switch (sort) {
             case "createdAt":
-                return new OrderSpecifier<>(Order.DESC, post.createdAt);
+                return new OrderSpecifier[]{
+                        new OrderSpecifier<>(Order.DESC, post.createdAt),
+                        new OrderSpecifier<>(Order.DESC, post.id)
+                };
             case "likes":
-                return new OrderSpecifier<>(Order.DESC, post.likeCount);
+                return new OrderSpecifier[]{
+                        new OrderSpecifier<>(Order.DESC, post.likeCount),
+                        new OrderSpecifier<>(Order.DESC, post.id)
+                };
             case "comments":
-                return new OrderSpecifier<>(Order.DESC, post.commentCount);
+                return new OrderSpecifier[]{
+                        new OrderSpecifier<>(Order.DESC, post.commentCount),
+                        new OrderSpecifier<>(Order.DESC, post.id)
+                };
             case "views":
-                return new OrderSpecifier<>(Order.DESC, post.viewCount);
+                return new OrderSpecifier[]{
+                        new OrderSpecifier<>(Order.DESC, post.viewCount),
+                        new OrderSpecifier<>(Order.DESC, post.id)
+                };
             default:
-                return new OrderSpecifier<>(Order.DESC, post.createdAt);
+                return new OrderSpecifier[]{
+                        new OrderSpecifier<>(Order.DESC, post.createdAt),
+                        new OrderSpecifier<>(Order.DESC, post.id)
+                };
         }
     }
 }

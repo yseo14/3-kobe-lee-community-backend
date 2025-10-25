@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record GetPostResponse(
+        Long postId,
         Long memberId,
         String nickname,
         String profileImageKey,

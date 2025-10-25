@@ -16,7 +16,7 @@ public interface PostService {
 
     Post updatePost(HttpServletRequest httpServletRequest, UpdatePostRequest updatePostRequest, Long postId);
 
-    List<PostPreview> getPostList(String sort, int limit, Object cursor);
+    List<PostPreview> getPostList(String sort, int limit, Object cursorValue, Long cursorId);
 
     GetPostResponse getPost(HttpServletRequest httpServletRequest, Long postId);
 }

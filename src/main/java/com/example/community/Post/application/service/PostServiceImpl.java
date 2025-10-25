@@ -105,8 +105,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostPreview> getPostList(String sort, int limit, Object cursor) {
-        return postRepository.findPostsWithCursor(sort, limit, cursor);
+    public List<PostPreview> getPostList(String sort, int limit, Object cursorValue, Long cursorId) {
+
+        return postRepository.findPostsWithCursor(sort, limit, cursorValue, cursorId);
     }
 
     @Override

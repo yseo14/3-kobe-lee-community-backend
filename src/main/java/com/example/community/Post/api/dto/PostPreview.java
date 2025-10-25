@@ -11,6 +11,6 @@ public record PostPreview(
         Long memberId,
         String profileImageId,
         String nickname,
-        LocalDateTime createAt
+        LocalDateTime createdAt
 ) {
 }

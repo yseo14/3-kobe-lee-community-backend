@@ -37,6 +37,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         return queryFactory
                 .select(Projections.constructor(
                         PostPreview.class,
+                        post.id,
                         post.title,
                         post.likeCount,
                         post.commentCount,
@@ -60,6 +61,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         GetPostResponse temp = queryFactory
                 .select(Projections.constructor(
                         GetPostResponse.class,
+                        post.id,
                         member.id,
                         member.nickname,
                         image.objectKey,
@@ -97,6 +99,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 .fetch();
 
         return new GetPostResponse(
+                temp.postId(),
                 temp.memberId(),
                 temp.nickname(),
                 temp.profileImageKey(),

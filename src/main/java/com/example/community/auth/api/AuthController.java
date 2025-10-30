@@ -5,7 +5,9 @@ import com.example.community.auth.api.dto.LoginRequest;
 import com.example.community.auth.api.dto.LoginResponse;
 import com.example.community.auth.api.dto.LogoutResponse;
 import com.example.community.auth.api.dto.RefreshResponse;
+import com.example.community.auth.api.dto.SessionLoginResponse;
 import com.example.community.auth.application.service.AuthService;
+import com.example.community.auth.application.service.SessionAuthService;
 import com.example.community.global.response.ApiResponse;
 import com.example.community.global.response.code.status.SuccessStatus;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final SessionAuthService sessionAuthService;
 
     @PostMapping
     public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request,
@@ -42,6 +46,20 @@ public class AuthController {
         httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ApiResponse.onSuccess(SuccessStatus.LOGIN_SUCCESS, loginResponse);
+    }
+
+    @PostMapping("/v2")
+    public ApiResponse<SessionLoginResponse> sessionLogin(@RequestBody LoginRequest request,
+                                                          HttpServletResponse httpServletResponse) {
+        SessionLoginResponse sessionLoginResponse = sessionAuthService.login(request, httpServletResponse);
+        return ApiResponse.onSuccess(SuccessStatus.LOGIN_SUCCESS, sessionLoginResponse);
+    }
+
+    @DeleteMapping("/v2")
+    public ApiResponse<LogoutResponse> sessionLogout(HttpServletRequest httpServletRequest,
+                                                     HttpServletResponse httpServletResponse) {
+        LogoutResponse response = sessionAuthService.logout(httpServletRequest, httpServletResponse);
+        return ApiResponse.onSuccess(SuccessStatus.LOGOUT_SUCCESS, response);
     }
 
     @DeleteMapping

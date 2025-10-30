@@ -7,6 +7,7 @@ public record CommentResponse(
         String nickname,
         String content,
         String profileImage,
+        LocalDateTime createdAt,
         LocalDateTime updatedAt,
         boolean isUpdated,
         boolean viewerCanEdit,

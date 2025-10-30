@@ -35,6 +35,7 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
                         writer.nickname,
                         comment.content,
                         profileImage.objectKey,                     // 작성자 프로필 이미지
+                        comment.createdAt,
                         comment.updatedAt,                          // 수정된 시각
                         comment.createdAt.ne(comment.updatedAt),    // 생성시간과 수정시간이 다르면 수정된 것
                         writer.id.eq(viewerId)

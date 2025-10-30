@@ -28,16 +28,21 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/auth").permitAll()          // 로그인
-                        .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()  //  토큰 재발급
-                        .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입
-                        .requestMatchers(HttpMethod.GET, "/member/email").permitAll()   // 이메일 중복 확인
-                        .requestMatchers(HttpMethod.GET, "/member/nickname").permitAll()// 닉네임 중복 확인
-                        .requestMatchers(HttpMethod.GET, "/terms").permitAll()  // 이용약관 조회
-                        .requestMatchers(HttpMethod.GET, "/privacy").permitAll()  // 개인정보 조회
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // 모든 요청을 허용으로 변경
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
+
+//                //  시큐리티 제거 효과를 위한 인가 설정 제거
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers(HttpMethod.POST, "/auth").permitAll()          // 로그인
+//                        .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()  //  토큰 재발급
+//                        .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입
+//                        .requestMatchers(HttpMethod.GET, "/member/email").permitAll()   // 이메일 중복 확인
+//                        .requestMatchers(HttpMethod.GET, "/member/nickname").permitAll()// 닉네임 중복 확인
+//                        .requestMatchers(HttpMethod.GET, "/terms").permitAll()  // 이용약관 조회
+//                        .requestMatchers(HttpMethod.GET, "/privacy").permitAll()  // 개인정보 조회
+//                        .anyRequest().authenticated()
+//                )
+//                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
 
                 .build();
 

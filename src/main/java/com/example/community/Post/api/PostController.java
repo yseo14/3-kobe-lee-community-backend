@@ -11,6 +11,7 @@ import com.example.community.Post.application.mapper.CreatePostMapper;
 import com.example.community.Post.application.mapper.GetPostMapper;
 import com.example.community.Post.application.mapper.UpdatePostMapper;
 import com.example.community.Post.application.service.PostService;
+import com.example.community.Post.application.service.SessionPostService;
 import com.example.community.Post.domain.Post;
 import com.example.community.global.response.ApiResponse;
 import com.example.community.global.response.code.status.SuccessStatus;
@@ -34,11 +35,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final SessionPostService sessionPostService;
 
     @PostMapping
     public ApiResponse<CreatePostResponse> createPost(HttpServletRequest httpServletRequest,
                                                       @RequestBody @Valid CreatePostRequest createPostRequest) {
         Post post = postService.createPost(httpServletRequest, createPostRequest);
+        return ApiResponse.onSuccess(SuccessStatus.CREATE_POST, CreatePostMapper.toCreatePostResponse(post));
+    }
+
+    @PostMapping("/v2")
+    public ApiResponse<CreatePostResponse> sessionCreatePost(HttpServletRequest httpServletRequest,
+                                                      @RequestBody @Valid CreatePostRequest createPostRequest) {
+        Post post = sessionPostService.createPost(httpServletRequest, createPostRequest);
         return ApiResponse.onSuccess(SuccessStatus.CREATE_POST, CreatePostMapper.toCreatePostResponse(post));
     }
 
@@ -65,7 +74,8 @@ public class PostController {
         Object cursorType = parseCursor(sort, cursorValue, cursorId);
 
         List<PostPreview> postPreviewList = postService.getPostList(sort, limit, cursorType, cursorId);
-        return ApiResponse.onSuccess(SuccessStatus.GET_POST_LIST, GetPostMapper.toGetPostListResponse(postPreviewList, sort));
+        return ApiResponse.onSuccess(SuccessStatus.GET_POST_LIST,
+                GetPostMapper.toGetPostListResponse(postPreviewList, sort));
     }
 
     @GetMapping("/{postId}")
@@ -76,11 +86,12 @@ public class PostController {
 
 
     /**
-     * 1. 해당 요청이 첫 요청인지 판단한다. (cursorValue와 cursorId가 null이면 첫 요청)
-     * 2. 첫 요청이 아니라면, sort를 기준으로 cursorValue의 타입을 변환한다. (createdAt 즉, 생성일자 기준이면 LocalDateTime으로 변환. 카운터 기준이면 Long으로 변환)
-     * @param sort: 정렬 기준
+     * 1. 해당 요청이 첫 요청인지 판단한다. (cursorValue와 cursorId가 null이면 첫 요청) 2. 첫 요청이 아니라면, sort를 기준으로 cursorValue의 타입을 변환한다.
+     * (createdAt 즉, 생성일자 기준이면 LocalDateTime으로 변환. 카운터 기준이면 Long으로 변환)
+     *
+     * @param sort:        정렬 기준
      * @param cursorValue: 다음 데이터를 요청하기 위한 이전 요청의 마지막 데이터의 cursor 값
-     * @param cursorId: 이전 요청의 마지막 데이터의 postId 값
+     * @param cursorId:    이전 요청의 마지막 데이터의 postId 값
      * @return
      */
     private Object parseCursor(String sort, String cursorValue, Long cursorId) {

@@ -67,7 +67,7 @@ public class SessionAuthService {
         cookie.setMaxAge((int) SESSION_TTL.toSeconds());
         response.addCookie(cookie);
 
-        return SessionMapper.toSessionLoginResponse(member, sessionId);
+        return SessionMapper.toSessionLoginResponse(member);
     }
 
     public LogoutResponse logout(HttpServletRequest request, HttpServletResponse response) {

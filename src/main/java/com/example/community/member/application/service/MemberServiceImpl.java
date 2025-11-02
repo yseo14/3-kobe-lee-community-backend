@@ -90,7 +90,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Member updateInfo(HttpServletRequest httpServletRequest, UpdateInfoRequest updateInfoRequest) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        String memberId = jwtUtils.getUserNameFromToken(accessToken);
+        String memberId = jwtUtils.getUserMemberIdFromToken(accessToken);
         Member member = memberRepository.findById(Long.parseLong(memberId)).orElseThrow(MemberNotFoundException::new);
         if (updateInfoRequest.nickname() != null) {
             member.updateNickname(updateInfoRequest.nickname());
@@ -110,7 +110,7 @@ public class MemberServiceImpl implements MemberService {
     public LocalDateTime updatePassword(HttpServletRequest httpServletRequest,
                                         UpdatePasswordRequest updatePasswordRequest) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        String memberId = jwtUtils.getUserNameFromToken(accessToken);
+        String memberId = jwtUtils.getUserMemberIdFromToken(accessToken);
         Member member = memberRepository.findById(Long.parseLong(memberId)).orElseThrow(MemberNotFoundException::new);
 
         member.updatePassword(passwordEncoder.encode(updatePasswordRequest.password()));
@@ -121,7 +121,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public LocalDateTime deleteMember(HttpServletRequest httpServletRequest) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        String memberId = jwtUtils.getUserNameFromToken(accessToken);
+        String memberId = jwtUtils.getUserMemberIdFromToken(accessToken);
         Member member = memberRepository.findById(Long.parseLong(memberId)).orElseThrow(MemberNotFoundException::new);
 
         return member.deleteMember(LocalDateTime.now());
@@ -130,7 +130,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public InfoResponse getMyInfo(HttpServletRequest httpServletRequest) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        String memberId = jwtUtils.getUserNameFromToken(accessToken);
+        String memberId = jwtUtils.getUserMemberIdFromToken(accessToken);
         Member member = memberRepository.findById(Long.parseLong(memberId)).orElseThrow(MemberNotFoundException::new);
 
         return InfoMapper.toInfoResponse(member);

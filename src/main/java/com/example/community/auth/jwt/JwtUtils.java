@@ -14,19 +14,12 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.Date;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -52,27 +45,20 @@ public class JwtUtils {
     }
 
     // Member 정보를 가지고 AccessToken, RefreshToken을 생성하기
-    public JwtToken generateToken(Authentication authentication) {
-        // 권한 가져오기
-        // JWT 토큰의 claims에 포함되어 사용자의 권한 정보를 저장하는데 사용됨
-        String authorities = authentication.getAuthorities().stream() // Authentication 객체에서 사용자 권한 목록 가져오기
-                .map(GrantedAuthority::getAuthority) // 각 GrantedAuthority 객체에서 권한 문자열만 추출하기
-                .collect(Collectors.joining(",")); // 추출된 권한 문자열들을 쉼표로 구분하여 하나의 문자열로 결합하기
-
+    public JwtToken generateToken(Long memberId, List<String> roles) {
         long now = (new Date()).getTime();
-        String username = authentication.getName();
 
         // AccessToken 생성
         Date accessTokenExpire = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
-        String accessToken = generateAccessToken(username, authorities, accessTokenExpire);
+        String accessToken = generateAccessToken(String.valueOf(memberId), accessTokenExpire, roles);
 
         // RefreshToken 생성
         Date refreshTokenExpire = new Date(now + REFRESH_TOKEN_EXPIRE_TIME);
-        String refreshToken = generateRefreshToken(username, refreshTokenExpire);
+        String refreshToken = generateRefreshToken(String.valueOf(memberId), refreshTokenExpire);
 
         // Redis에 RefreshToken 넣기
         // "REFRESH_TOKEN_EXPIRE_TIME"만큼 시간이 지나면 삭제됨
-        redisDao.setValues(username, refreshToken, Duration.ofMillis(REFRESH_TOKEN_EXPIRE_TIME));
+        redisDao.setValues(String.valueOf(memberId), refreshToken, Duration.ofMillis(REFRESH_TOKEN_EXPIRE_TIME));
 
         return JwtToken.builder()
                 .grantType(GRANT_TYPE) // "Bearer"
@@ -81,44 +67,50 @@ public class JwtUtils {
                 .build();
     }
 
-    private String generateAccessToken(String username, String authorities, Date expireDate) {
+    public JwtToken generateToken(Long memberId, List<String> roles, long refreshTtlMillis) {
+        long now = (new Date()).getTime();
+
+        // AccessToken 생성 (기존과 동일)
+        Date accessTokenExpire = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
+        String accessToken = generateAccessToken(String.valueOf(memberId), accessTokenExpire, roles);
+
+        // RefreshToken 만료 시간을 기존 남은 시간으로 지정
+        Date refreshTokenExpire = new Date(now + refreshTtlMillis);
+        String refreshToken = generateRefreshToken(String.valueOf(memberId), refreshTokenExpire);
+
+        // Redis에 동일 TTL로 저장
+        redisDao.setValues(String.valueOf(memberId), refreshToken, Duration.ofMillis(refreshTtlMillis));
+
+        return JwtToken.builder()
+                .grantType(GRANT_TYPE)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    private String generateAccessToken(String memberId, Date expireDate, List<String> roles) {
         return Jwts.builder()
-                .setSubject(username) // 토큰 제목 (사용자 이름)
-                .claim("auth", authorities) // 권한 정보 (커스텀 클레임)
+                .setSubject(memberId) // 토큰 제목 (memberId)
                 .setExpiration(expireDate) // 토큰 만료 시간
+                .setIssuedAt(new Date())
+                .claim("roles", roles)
                 .signWith(key, SignatureAlgorithm.HS256) // 지정된 키와 알고리즘으로 서명
                 .compact(); // 최종 JWT 문자열 생성 (header.payload.signature 구조);
     }
 
-    private String generateRefreshToken(String username, Date expireDate) {
+    private String generateRefreshToken(String memberId, Date expireDate) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(memberId)
+                .claim("typ", "refresh")
+                .setId(UUID.randomUUID().toString())
+                .setIssuedAt(new Date())
                 .setExpiration(expireDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // JWT 토큰을 복호화하여 토큰에 들어있는 정보 꺼내기
-    public Authentication getAuthentication(String accessToken) {
-        // JWT 토큰 복호화
-        Claims claims = parseClaims(accessToken);
-        if (claims.get("auth") == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
-        }
-
-        // 클레임에서 권한 정보 가져오기
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
-                .map(SimpleGrantedAuthority::new) // SimpleGrantedAuthority 객체들의 컬렉션으로 변환
-                .toList();
-
-        // UserDetails 객체를 만들어서 Authentication return
-        // UserDetails: interface, User: UserDetails를 구현한 클래스
-        UserDetails principal = new User(claims.getSubject(), "", authorities); // 파라미터: 사용자 식별자, credentials, 권한 목록
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
-    }
-
     // JWT 토큰 복호화
-    private Claims parseClaims(String accessToken) {
+    public Claims parseClaims(String accessToken) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(key)
@@ -128,7 +120,7 @@ public class JwtUtils {
         } catch (MalformedJwtException e) {
             throw new InvalidTokenException(ErrorStatus.INVALID_TOKEN_FORMAT);
         } catch (ExpiredJwtException e) {
-            throw new InvalidTokenException(ErrorStatus.EXPIRED_TOKEN);
+            return e.getClaims();
         } catch (JwtException e) {
             throw new InvalidTokenException(ErrorStatus.INVALID_TOKEN);
         }
@@ -172,7 +164,7 @@ public class JwtUtils {
         validateToken(token);
 
         // 2. Redis 저장값과 비교
-        String username = getUserNameFromToken(token);
+        String username = getUserMemberIdFromToken(token);
         String redisToken = (String) redisDao.getValues(username);
 
         if (redisToken == null || !redisToken.equals(token)) {
@@ -180,12 +172,12 @@ public class JwtUtils {
         }
     }
 
-    // 토큰에서 username 추출
-    public String getUserNameFromToken(String token) {
+    // 토큰에서 memberId 추출
+    public String getUserMemberIdFromToken(String token) {
         try {
             // 토큰 파싱해서 클레임 얻기
             Claims claims = parseClaims(token);
-            // 사용자 이름(subject) 반환
+            // memberId(subject) 반환
             return claims.getSubject();
         } catch (ExpiredJwtException e) {
             // 토큰이 만료되어도 클레임 내용을 가져올 수 있음
@@ -194,13 +186,13 @@ public class JwtUtils {
     }
 
     // RefreshToken 삭제
-    public void deleteRefreshToken(String username) {
-        if (username == null || username.trim().isEmpty()) {
+    public void deleteRefreshToken(String memberId) {
+        if (memberId == null || memberId.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
         }
 
         // 로그아웃 시 Redis에서 RefreshToken 삭제
-        redisDao.deleteValues(username);
+        redisDao.deleteValues(memberId);
     }
 
     // Request Header에서 JWT 토큰 추출

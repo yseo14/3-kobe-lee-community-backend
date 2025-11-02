@@ -6,7 +6,6 @@ import com.example.community.Post.repository.PostRepository;
 import com.example.community.auth.jwt.JwtUtils;
 import com.example.community.comment.api.dto.CommentResponse;
 import com.example.community.comment.api.dto.CreateCommentRequest;
-import com.example.community.comment.api.dto.GetCommentListResponse;
 import com.example.community.comment.api.dto.UpdateCommentRequest;
 import com.example.community.comment.application.mapper.CreateCommentMapper;
 import com.example.community.comment.domain.Comment;
@@ -39,7 +38,7 @@ public class CommentServiceImpl implements CommentService {
                                  CreateCommentRequest createCommentRequest,
                                  Long postId) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         Comment comment = CreateCommentMapper.toComment(createCommentRequest, member, post);
@@ -52,7 +51,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public LocalDateTime deleteComment(HttpServletRequest httpServletRequest, Long postId, Long commentId) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
         Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         Comment comment = commentRepository.findById(commentId).orElseThrow(CommentNotFoundException::new);
 
@@ -71,7 +70,7 @@ public class CommentServiceImpl implements CommentService {
     public Comment updateComment(HttpServletRequest httpServletRequest, UpdateCommentRequest updateCommentRequest,
                                  Long commentId) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
         Comment comment = commentRepository.findById(commentId).orElseThrow(CommentNotFoundException::new);
 
         if (!comment.getWriter().getId().equals(memberId)) {
@@ -88,7 +87,7 @@ public class CommentServiceImpl implements CommentService {
                                                 int limit, LocalDateTime cursorCreatedAt,
                                                 Long cursorId) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
 
         return commentRepository.getCommentListWithCursor(memberId, postId, sort, limit, cursorCreatedAt, cursorId);
     }

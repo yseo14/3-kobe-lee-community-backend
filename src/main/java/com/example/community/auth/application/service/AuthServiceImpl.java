@@ -11,22 +11,15 @@ import com.example.community.auth.application.mapper.RefreshMapper;
 import com.example.community.auth.jwt.JwtToken;
 import com.example.community.auth.jwt.JwtUtils;
 import com.example.community.global.redis.RedisDao;
-import com.example.community.global.response.code.status.ErrorStatus;
 import com.example.community.member.domain.Member;
 import com.example.community.member.exception.MemberNotFoundException;
 import com.example.community.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.Duration;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,62 +27,87 @@ public class AuthServiceImpl implements AuthService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtUtils jwtUtils;
     private final RedisDao redisDao;
 
+
+    /**
+     * 로그인. 이메일과 비밀번호 검증 후 AccessToken과 RefreshToken 발급
+     */
     @Override
     public LoginResponse login(LoginRequest request) {
         String email = request.email();
         String rawPassword = request.password();
-        Member member = memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
+
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(MemberNotFoundException::new);
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
             throw new LoginFailedException();
         }
 
-        //  Spring Security 인증용 토큰
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email,
-                rawPassword);
+        List<String> roles = List.of("ROLE_USER");
 
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-        JwtToken jwtToken = jwtUtils.generateToken(authentication);
+        // JWT 토큰 발급 (Access + Refresh)
+        JwtToken jwtToken = jwtUtils.generateToken(
+                member.getId(),
+                roles
+        );
+
         return LoginMapper.toLoginResponse(member, jwtToken);
     }
 
+    /**
+     * 로그아웃: Redis에 저장된 RefreshToken 제거 + AccessToken 블랙리스트 등록
+     */
     @Override
     public LogoutResponse logout(HttpServletRequest request) {
         String accessToken = jwtUtils.resolveToken(request);
+
+        // 남은 만료 시간 계산
         long remainingTime = jwtUtils.getRemainingExpiration(accessToken);
-        String memberId = jwtUtils.getUserNameFromToken(accessToken);
+
+        // memberId 추출
+        String memberId = jwtUtils.getUserMemberIdFromToken(accessToken);
+
+        // RefreshToken 제거
         jwtUtils.deleteRefreshToken(memberId);
 
-        // 만료시간까지 남은 시간 동안 블랙리스트에 저장
-        redisDao.setValues("blacklist:" + accessToken, "logout", Duration.ofMillis(remainingTime));
+        // AccessToken 블랙리스트 등록 (만료될 때까지 유지)
+        redisDao.setValues(
+                "blacklist:" + accessToken,
+                "logout",
+                Duration.ofMillis(remainingTime)
+        );
 
         return LogoutMapper.toLogoutResponse();
     }
 
     /**
-     * accessToken이 만료된 사용자가 토큰 재발급 요청을 보내면, access, refresh 토큰 모두 재발급한다.
-     *
-     * @param refreshToken: accessToken이 만료된 사용자의 refreshToken
-     * @return RefreshResponse: accessToken, refreshToken
+     * RefreshToken 검증 후 Access/Refresh 재발급
      */
     @Override
     public RefreshResponse refresh(String refreshToken) {
+        // refresh token 유효성 검사
         jwtUtils.validateRefreshToken(refreshToken);
-        String memberId = jwtUtils.getUserNameFromToken(refreshToken);
 
-        // redis에 저장된 기존 refreshToken 제거
+        // 토큰에서 사용자 식별자 추출
+        String memberId = jwtUtils.getUserMemberIdFromToken(refreshToken);
+
+        long remainingTtl = jwtUtils.getRemainingExpiration(refreshToken);
+
+        // Redis에서 기존 RefreshToken 제거
         jwtUtils.deleteRefreshToken(memberId);
 
-        // Authentication 객체를 직접 생성
-        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        Authentication authentication = new UsernamePasswordAuthenticationToken(memberId, null, authorities);
+        Member member = memberRepository.findById(Long.parseLong(memberId))
+                .orElseThrow(MemberNotFoundException::new);
 
-        JwtToken newToken = jwtUtils.generateToken(authentication);
+        // 권한 재지정
+        List<String> roles = List.of("ROLE_USER");
+
+        // 새 JWT 발급
+        JwtToken newToken = jwtUtils.generateToken(member.getId(), roles, remainingTtl);
+
         return RefreshMapper.toRefreshResponse(newToken);
     }
-
 }

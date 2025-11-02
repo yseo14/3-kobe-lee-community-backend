@@ -36,7 +36,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public Post createPost(HttpServletRequest httpServletRequest, CreatePostRequest createPostRequest) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
 
         Post post = Post.builder()
@@ -70,7 +70,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public LocalDateTime deletePost(HttpServletRequest httpServletRequest, Long postId) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
 
@@ -86,7 +86,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public Post updatePost(HttpServletRequest httpServletRequest, UpdatePostRequest updatePostRequest, Long postId) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
         Member member = memberRepository.findById(memberId).orElseThrow(MemberNotFoundException::new);
         Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         if (!post.getWriter().getId().equals(member.getId())) {
@@ -113,7 +113,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public GetPostResponse getPost(HttpServletRequest httpServletRequest, Long postId) {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
-        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        Long memberId = Long.parseLong(jwtUtils.getUserMemberIdFromToken(accessToken));
 
         return postRepository.findPostDetail(postId, memberId);
     }

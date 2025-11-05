@@ -1,6 +1,7 @@
 package com.example.community.member.api;
 
 import com.example.community.global.response.ApiResponse;
+import com.example.community.global.response.code.BaseCode;
 import com.example.community.global.response.code.status.SuccessStatus;
 import com.example.community.member.api.dto.EmailDuplicateCheckRequest;
 import com.example.community.member.api.dto.EmailDuplicateCheckResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -40,30 +42,19 @@ public class MemberController {
     private final MemberService memberService;
 
     @GetMapping("/email")
-    public ApiResponse<EmailDuplicateCheckResponse> emailDuplicateCheck(@RequestBody @Valid
-                                                                        EmailDuplicateCheckRequest request) {
+    public ApiResponse<EmailDuplicateCheckResponse> emailDuplicateCheck(@RequestParam String email) {
 
-        boolean available = memberService.emailDuplicateCheck(request.email());
-        if (available) {
-            return ApiResponse.onSuccess(SuccessStatus.EMAIL_AVAILABLE,
-                    EmailDuplicateCheckMapper.toResponse(available));
-        } else {
-            return ApiResponse.onSuccess(SuccessStatus.EMAIL_DUPLICATED,
-                    EmailDuplicateCheckMapper.toResponse(available));
-        }
+        boolean available = memberService.emailDuplicateCheck(email);
+        BaseCode successStatus = available ? SuccessStatus.EMAIL_AVAILABLE : SuccessStatus.EMAIL_DUPLICATED;
+        return ApiResponse.onSuccess(successStatus, EmailDuplicateCheckMapper.toResponse(available));
     }
 
+
     @GetMapping("/nickname")
-    public ApiResponse<NicknameDuplicateCheckResponse> nicknameDuplicateCheck(@RequestBody @Valid
-                                                                              NicknameDuplicateCheckRequest request) {
-        boolean available = memberService.nicknameDuplicateCheck(request.nickname());
-        if (available) {
-            return ApiResponse.onSuccess(SuccessStatus.NICKNAME_AVAILABLE,
-                    NicknameDuplicateCheckMapper.toResponse(available));
-        } else {
-            return ApiResponse.onSuccess(SuccessStatus.NICKNAME_DUPLICATED,
-                    NicknameDuplicateCheckMapper.toResponse(available));
-        }
+    public ApiResponse<NicknameDuplicateCheckResponse> nicknameDuplicateCheck(@RequestParam String nickname) {
+        boolean available = memberService.nicknameDuplicateCheck(nickname);
+        BaseCode successStatus = available ? SuccessStatus.NICKNAME_AVAILABLE : SuccessStatus.NICKNAME_DUPLICATED;
+        return ApiResponse.onSuccess(successStatus, NicknameDuplicateCheckMapper.toResponse(available));
     }
 
     @PostMapping

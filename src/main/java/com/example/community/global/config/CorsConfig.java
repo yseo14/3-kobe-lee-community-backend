@@ -14,7 +14,8 @@ public class CorsConfig {
 
         // 허용할 Origin 패턴 (정확히 일치하거나 패턴 매칭 허용)
         configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://13.125.4.68:3000"
         ));
 
         // 허용할 HTTP 메서드

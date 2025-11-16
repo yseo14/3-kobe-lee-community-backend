@@ -42,14 +42,14 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         log.info("Resolved path = {}", path);
 
         // 인증이 필요하지 않은 경로에 대해 필터를 건너뛴다.
-        if ((pathMatcher.match("/auth", path) && "POST".equalsIgnoreCase(method)) ||  // 로그인만 허용
-                (pathMatcher.match("/auth/refresh", path) && "POST".equalsIgnoreCase(method)) || // 토큰 재발급 허용
-                (pathMatcher.match("/member", path) && "POST".equalsIgnoreCase(method)) || // 회원가입만 허용
-                (pathMatcher.match("/member/email", path) && "GET".equalsIgnoreCase(method)) ||
-                (pathMatcher.match("/member/nickname", path) && "GET".equalsIgnoreCase(method)) ||
-                (pathMatcher.match("/terms", path) && "GET".equalsIgnoreCase(method)) ||
-                (pathMatcher.match("/privacy", path) && "GET".equalsIgnoreCase(method)) ||
-                (pathMatcher.match("/actuator/**", path))
+        if ((pathMatcher.match("/api/auth", path) && "POST".equalsIgnoreCase(method)) ||  // 로그인만 허용
+                (pathMatcher.match("/api/auth/refresh", path) && "POST".equalsIgnoreCase(method)) || // 토큰 재발급 허용
+                (pathMatcher.match("/api/member", path) && "POST".equalsIgnoreCase(method)) || // 회원가입만 허용
+                (pathMatcher.match("/api/member/email", path) && "GET".equalsIgnoreCase(method)) ||
+                (pathMatcher.match("/api/member/nickname", path) && "GET".equalsIgnoreCase(method)) ||
+                (pathMatcher.match("/api/terms", path) && "GET".equalsIgnoreCase(method)) ||
+                (pathMatcher.match("/api/privacy", path) && "GET".equalsIgnoreCase(method)) ||
+                (pathMatcher.match("/api/actuator/**", path))
         ) {
 
             log.info("🔹 Skipping JWT filter for path: {}", path);

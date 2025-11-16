@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()       //  헬스체크
                         .requestMatchers(HttpMethod.POST, "/auth").permitAll()          // 로그인
                         .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()  //  토큰 재발급
                         .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입

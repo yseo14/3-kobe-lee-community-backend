@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 (pathMatcher.match("/member/nickname", path) && "GET".equalsIgnoreCase(method)) ||
                 (pathMatcher.match("/terms", path) && "GET".equalsIgnoreCase(method)) ||
                 (pathMatcher.match("/privacy", path) && "GET".equalsIgnoreCase(method)) ||
-                (pathMatcher.match("/actuator/**", path) && "GET".equalsIgnoreCase(method))
+                (pathMatcher.match("/actuator/**", path))
         ) {
 
             log.info("🔹 Skipping JWT filter for path: {}", path);

@@ -28,7 +28,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/actuator/**").permitAll()       //  헬스체크
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth").permitAll()          // 로그인
                         .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()  //  토큰 재발급
                         .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입

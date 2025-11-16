@@ -28,15 +28,15 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(CorsConfig.corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth").permitAll()          // 로그인
-                        .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()  //  토큰 재발급
-                        .requestMatchers(HttpMethod.POST, "/member").permitAll()        // 회원가입
-                        .requestMatchers(HttpMethod.GET, "/member/email").permitAll()   // 이메일 중복 확인
-                        .requestMatchers(HttpMethod.GET, "/member/nickname").permitAll()// 닉네임 중복 확인
-                        .requestMatchers(HttpMethod.GET, "/terms").permitAll()  // 이용약관 조회
-                        .requestMatchers(HttpMethod.GET, "/privacy").permitAll()  // 개인정보 조회
+                        .requestMatchers("/api/actuator/health").permitAll()
+                        .requestMatchers("/api/actuator/health/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()          // 로그인
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()  //  토큰 재발급
+                        .requestMatchers(HttpMethod.POST, "/api/member").permitAll()        // 회원가입
+                        .requestMatchers(HttpMethod.GET, "/api/member/email").permitAll()   // 이메일 중복 확인
+                        .requestMatchers(HttpMethod.GET, "/api/member/nickname").permitAll()// 닉네임 중복 확인
+                        .requestMatchers(HttpMethod.GET, "/api/terms").permitAll()  // 이용약관 조회
+                        .requestMatchers(HttpMethod.GET, "/api/privacy").permitAll()  // 개인정보 조회
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)

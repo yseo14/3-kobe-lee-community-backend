@@ -1,0 +1,18 @@
+# Git
+.git
+.gitignore
+
+# Maven / Gradle 빌드 결과물
+target/
+build/
+.gradle/
+
+# IDE 설정 파일
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+.DS_Store
+
+# 로그 파일
+*.log

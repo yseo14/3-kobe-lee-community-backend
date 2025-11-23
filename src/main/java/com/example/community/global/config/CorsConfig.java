@@ -1,37 +1,39 @@
 package com.example.community.global.config;
 
-import java.util.Arrays;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Configuration
 public class CorsConfig {
-    public static CorsConfigurationSource corsConfigurationSource() {
+
+    @Value("${custom.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 허용할 Origin 패턴 (정확히 일치하거나 패턴 매칭 허용)
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:3000",
-                "https://community-alb-1133986083.ap-northeast-2.elb.amazonaws.com"
-        ));
+        // 4. 환경변수에서 가져온 리스트를 적용
+        configuration.setAllowedOriginPatterns(allowedOrigins);
 
         // 허용할 HTTP 메서드
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "DELETE"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
 
         // 허용할 헤더
         configuration.addAllowedHeader("*");
 
-        // 인증 정보(쿠키 등) 포함 허용
+        // 인증 정보 포함 허용
         configuration.setAllowCredentials(true);
 
-        // 응답 헤더로 노출할 헤더 (선택)
+        // 응답 헤더 노출
         configuration.addExposedHeader("Authorization");
         configuration.addExposedHeader("Set-Cookie");
 
-        // 경로 매핑
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

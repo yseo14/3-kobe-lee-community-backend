@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  backend:
+    container_name: community-was
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+    ports:
+      - "8080:8080"
+    restart: always
+
+    env_file:
+      - .env
+
+    environment:
+      - TZ=Asia/Seoul
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_TOOL_OPTIONS=-Xmx1280m

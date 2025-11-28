@@ -1,0 +1,37 @@
+version: 0.0
+os: linux
+files:
+  - source: scripts/start_server.sh
+    destination: /home/ubuntu/scripts
+    overwrite: true
+  - source: scripts/change_permissions.sh
+    destination: /home/ubuntu/scripts
+    overwrite: true
+  - source: docker-compose.yml
+    destination: /home/ubuntu/backend
+    overwrite: true
+  - source: .env
+    destination: /home/ubuntu/backend
+    overwrite: true
+
+permissions:
+  - object: /home/ubuntu/scripts
+    pattern: "**"
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+
+  - object: /home/ubuntu/backend/.env
+    owner: ubuntu
+    group: ubuntu
+    mode: 600
+
+hooks:
+  AfterInstall:
+    - location: scripts/change_permissions.sh
+      timeout: 60
+      runas: root
+  ApplicationStart:
+    - location: scripts/start_server.sh
+      timeout: 300
+      runas: ubuntu

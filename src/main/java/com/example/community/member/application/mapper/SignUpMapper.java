@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SignUpMapper {
-    public static Member toMember(SignUpRequest request, Image image, String encodedPassword) {
+    public static Member toMember(SignUpRequest request, String imageKey, String encodedPassword) {
         return Member.builder()
                 .email(request.email())
                 .nickname(request.nickname())
                 .password(encodedPassword)
-                .profileImage(image)
+                .profileImageKey(imageKey)
                 .build();
     }
 

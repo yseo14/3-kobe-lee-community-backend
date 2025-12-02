@@ -42,13 +42,12 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                         post.commentCount,
                         post.viewCount,
                         post.writer.id,
-                        image.objectKey,
+                        member.profileImageKey,
                         post.writer.nickname,
                         post.createdAt
                 ))
                 .from(post)
                 .join(post.writer, member)
-                .leftJoin(member.profileImage, image)
                 .where(cursorCondition)
                 .orderBy(orderSpecifier)
                 .limit(limit)
@@ -63,7 +62,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                         post.id,
                         member.id,
                         member.nickname,
-                        image.objectKey,
+                        member.profileImageKey,
                         post.createdAt,
                         Expressions.nullExpression(List.class),
                         post.title,
@@ -78,7 +77,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 ))
                 .from(post)
                 .join(post.writer, member)
-                .leftJoin(member.profileImage, image)
                 .where(post.id.eq(postId))
                 .fetchOne();
 

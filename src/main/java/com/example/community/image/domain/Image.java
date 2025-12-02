@@ -26,17 +26,5 @@ public class Image {
     private String objectKey;
 
     @Column(nullable = false)
-    private int fileSize;
-
-    @Column(nullable = false, length = 50)
-    private String mimeType;
-
-    @Column(nullable = false)
-    private int width;
-
-    @Column(nullable = false)
-    private int height;
-
-    @Column(nullable = false)
     private boolean isUsed;
 }

@@ -48,7 +48,7 @@ class MemberServiceImplTest {
         String password = "password123";
         String nickname = "tester";
 
-        // SignUpRequest(profileImageKey, email, nickname, password, confirmPassword)
+        // SignUpRequest(profileImageObjectKey, email, nickname, password, confirmPassword)
         SignUpRequest request = new SignUpRequest(null, email, nickname, password, password);
 
         given(memberRepository.existsByEmail(email)).willReturn(false);

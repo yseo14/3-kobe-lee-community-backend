@@ -103,8 +103,8 @@ public class MemberServiceImpl implements MemberService {
             member.updateNickname(updateInfoRequest.nickname());
         }
 
-        if (updateInfoRequest.profileImageKey() != null) {
-            member.updateProfileImage(updateInfoRequest.profileImageKey());
+        if (updateInfoRequest.profileImageObjectKey() != null) {
+            member.updateProfileImage(updateInfoRequest.profileImageObjectKey());
         }
 
         return member;

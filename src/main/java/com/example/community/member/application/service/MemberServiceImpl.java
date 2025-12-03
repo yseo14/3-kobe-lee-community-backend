@@ -103,8 +103,20 @@ public class MemberServiceImpl implements MemberService {
             member.updateNickname(updateInfoRequest.nickname());
         }
 
-        if (updateInfoRequest.profileImageObjectKey() != null) {
-            member.updateProfileImage(updateInfoRequest.profileImageObjectKey());
+        if (updateInfoRequest.profileImageObjectKey() != null && !updateInfoRequest.profileImageObjectKey().isBlank()) {
+            String tempKey = updateInfoRequest.profileImageObjectKey();
+
+            // 보안 검증: 진짜 temp 폴더 파일인지 확인
+            if (!tempKey.startsWith("temp/")) {
+                throw new InvalidPathException("잘못된 이미지 경로입니다.");
+            }
+
+            String newKey = tempKey.replace("temp/", "public/image/");
+
+            // S3 이동 실행 (Copy & Delete)
+            s3ImageService.moveImage(tempKey, newKey);
+
+            member.updateProfileImage(newKey);
         }
 
         return member;

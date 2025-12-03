@@ -27,4 +27,8 @@ public class Image {
 
     @Column(nullable = false)
     private boolean isUsed;
+
+    public void updateIsUsed(boolean isUsed) {
+        this.isUsed = isUsed;
+    }
 }

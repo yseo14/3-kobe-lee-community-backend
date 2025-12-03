@@ -11,7 +11,9 @@ import com.example.community.global.exception.GeneralException;
 import com.example.community.global.response.code.status.ErrorStatus;
 import com.example.community.Post.api.dto.PostPreview;
 import com.example.community.image.domain.Image;
+import com.example.community.image.exception.InvalidPathException;
 import com.example.community.image.repository.ImageRepository;
+import com.example.community.image.service.S3ImageService;
 import com.example.community.member.domain.Member;
 import com.example.community.member.exception.MemberNotFoundException;
 import com.example.community.member.repository.MemberRepository;
@@ -31,6 +33,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final ImageRepository imageRepository;
+    private final S3ImageService s3ImageService;
 
     @Override
     @Transactional
@@ -45,22 +48,53 @@ public class PostServiceImpl implements PostService {
                 .writer(member)
                 .build();
 
-        List<Long> imageIds = createPostRequest.imageIds();
+        // Post를 먼저 저장하여 id를 생성 (PostImage.of()에서 post.getId()를 사용하므로)
+        post = postRepository.save(post);
 
-        for (int i = 0; i < imageIds.size(); i++) {
-            Long imageId = imageIds.get(i);
+        List<String> objectKeys = createPostRequest.objectKeys();
+        
+        // thumbnailObjectKey도 이동된 키로 변환 (비교를 위해)
+        String finalThumbnailObjectKey = createPostRequest.thumbnailObjectKey();
+        if (finalThumbnailObjectKey != null && finalThumbnailObjectKey.startsWith("temp/")) {
+            finalThumbnailObjectKey = finalThumbnailObjectKey.replace("temp/", "public/image/");
+        }
 
-            Image image = imageRepository.findById(imageId)
-                    .orElseThrow(() -> new GeneralException(ErrorStatus.IMAGE_NOT_FOUND));
+        if (objectKeys != null && !objectKeys.isEmpty()) {
+            for (int i = 0; i < objectKeys.size(); i++) {
+                String objectKey = objectKeys.get(i);
+                String finalObjectKey = objectKey;
 
-            PostImage postImage = PostImage.of(
-                    post,
-                    image,
-                    i + 1,
-                    imageId.equals(createPostRequest.thumbnailImageId())
-            );
+                // temp 폴더의 이미지인 경우 public 폴더로 이동
+                if (objectKey != null && objectKey.startsWith("temp/")) {
+                    // 보안 검증: 진짜 temp 폴더 파일인지 확인
+                    if (!objectKey.startsWith("temp/")) {
+                        throw new InvalidPathException("잘못된 이미지 경로입니다.");
+                    }
 
-            post.addPostImage(postImage);
+                    String newKey = objectKey.replace("temp/", "public/image/");
+
+                    // S3 이동 실행 (Copy & Delete)
+                    s3ImageService.moveImage(objectKey, newKey);
+
+                    finalObjectKey = newKey;
+                }
+
+                // objectKey로 새로운 Image 엔티티 생성 및 저장
+                Image image = Image.builder()
+                        .objectKey(finalObjectKey)
+                        .isUsed(true)
+                        .build();
+                image = imageRepository.save(image);
+
+                PostImage postImage = PostImage.of(
+                        post,
+                        image,
+                        i + 1,
+                        finalObjectKey.equals(finalThumbnailObjectKey)
+                );
+
+                post.addPostImage(postImage);
+            }
         }
 
         return postRepository.save(post);

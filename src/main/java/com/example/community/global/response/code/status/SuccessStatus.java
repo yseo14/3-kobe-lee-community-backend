@@ -34,6 +34,9 @@ public enum SuccessStatus implements BaseCode {
     UPDATE_COMMENT(HttpStatus.OK,"200_019", "댓글을 수정하였습니다."),
     GET_COMMENT_LIST(HttpStatus.OK,"200_020", "댓글 목록을 조회하였습니다."),
     REFRESH_SUCCESS(HttpStatus.OK,"200_021", "토큰을 재발급하였습니다."),
+    INCREMENT_VIEW_COUNT(HttpStatus.OK,"200_022", "조회수가 증가되었습니다."),
+    LIKE_POST(HttpStatus.OK,"200_023", "좋아요가 추가되었습니다."),
+    UNLIKE_POST(HttpStatus.OK,"200_024", "좋아요가 취소되었습니다."),
 
     ;
 

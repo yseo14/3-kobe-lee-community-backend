@@ -19,4 +19,25 @@ public interface PostService {
     List<PostPreview> getPostList(String sort, int limit, Object cursorValue, Long cursorId);
 
     GetPostResponse getPost(HttpServletRequest httpServletRequest, Long postId);
+
+    /**
+     * 조회수 증가
+     * @param postId 게시글 ID
+     * @param memberId 조회한 멤버 ID (중복 방지용)
+     */
+    void incrementViewCount(Long postId, Long memberId);
+
+    /**
+     * 좋아요 추가
+     * @param postId 게시글 ID
+     * @param memberId 좋아요한 멤버 ID
+     */
+    void likePost(Long postId, Long memberId);
+
+    /**
+     * 좋아요 취소
+     * @param postId 게시글 ID
+     * @param memberId 좋아요 취소한 멤버 ID
+     */
+    void unlikePost(Long postId, Long memberId);
 }

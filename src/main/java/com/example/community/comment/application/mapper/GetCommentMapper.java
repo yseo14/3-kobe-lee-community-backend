@@ -13,7 +13,7 @@ public class GetCommentMapper {
         if (!commentResponseList.isEmpty()) {
             CommentResponse last = commentResponseList.get(commentResponseList.size() - 1);
 
-            nextCursorCreatedAt = last.updatedAt();
+            nextCursorCreatedAt = last.createdAt();
             nextCursorId = last.commentId();
         }
 

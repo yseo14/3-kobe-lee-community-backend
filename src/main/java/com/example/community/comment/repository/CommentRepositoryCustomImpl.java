@@ -1,9 +1,7 @@
 package com.example.community.comment.repository;
 
-import com.example.community.Post.domain.QPost;
 import com.example.community.comment.api.dto.CommentResponse;
 import com.example.community.comment.domain.QComment;
-import com.example.community.image.domain.QImage;
 import com.example.community.member.domain.QMember;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -64,7 +62,8 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
                         .or(comment.createdAt.eq(cursorCreatedAt).and(comment.id.lt(cursorId)));
 
             case "oldest":
-                // 등록순 (createdAt ASC, id ASC)
+            case "createdAt":
+                // 등록순/생성순 (createdAt ASC, id ASC)
                 return comment.createdAt.gt(cursorCreatedAt)
                         .or(comment.createdAt.eq(cursorCreatedAt).and(comment.id.gt(cursorId)));
 
@@ -81,6 +80,7 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
                         new OrderSpecifier<>(Order.DESC, comment.id)
                 };
             case "oldest":
+            case "createdAt":
                 return new OrderSpecifier[]{
                         new OrderSpecifier<>(Order.ASC, comment.createdAt),
                         new OrderSpecifier<>(Order.ASC, comment.id)

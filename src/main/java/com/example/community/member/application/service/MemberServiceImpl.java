@@ -12,8 +12,10 @@ import com.example.community.member.application.mapper.SignUpMapper;
 import com.example.community.member.domain.Member;
 import com.example.community.member.exception.DuplicateEmailException;
 import com.example.community.member.exception.DuplicateNicknameException;
+import com.example.community.member.exception.InvalidCurrentPasswordException;
 import com.example.community.member.exception.MemberNotFoundException;
 import com.example.community.member.exception.PasswordMismatchException;
+import com.example.community.member.exception.SamePasswordException;
 import com.example.community.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -129,6 +131,21 @@ public class MemberServiceImpl implements MemberService {
         String accessToken = jwtUtils.resolveToken(httpServletRequest);
         String memberId = jwtUtils.getUserNameFromToken(accessToken);
         Member member = memberRepository.findById(Long.parseLong(memberId)).orElseThrow(MemberNotFoundException::new);
+
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(updatePasswordRequest.currentPassword(), member.getPassword())) {
+            throw new InvalidCurrentPasswordException();
+        }
+
+        // 새 비밀번호와 확인 비밀번호 일치 확인
+        if (!updatePasswordRequest.password().equals(updatePasswordRequest.confirmPassword())) {
+            throw new PasswordMismatchException();
+        }
+
+        // 새 비밀번호가 현재 비밀번호와 동일한지 확인
+        if (passwordEncoder.matches(updatePasswordRequest.password(), member.getPassword())) {
+            throw new SamePasswordException();
+        }
 
         member.updatePassword(passwordEncoder.encode(updatePasswordRequest.password()));
         return LocalDateTime.now();

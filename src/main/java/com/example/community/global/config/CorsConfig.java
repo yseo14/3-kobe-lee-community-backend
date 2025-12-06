@@ -25,16 +25,16 @@ public class CorsConfig {
 
         // 환경변수가 쉼표로 구분된 문자열이거나 단일 문자열일 수 있으므로 파싱
         List<String> allowedOrigins = parseAllowedOrigins(allowedOriginsString);
-        
+
         log.info("CORS 설정 - 허용된 Origin: {}", allowedOrigins);
         log.info("CORS 설정 - 원본 환경변수 값: {}", allowedOriginsString);
-        
+
         // setAllowCredentials(true)를 사용할 때는 setAllowedOrigins()를 사용해야 함
         // 패턴이 아닌 정확한 origin을 사용
         configuration.setAllowedOrigins(allowedOrigins);
 
         // 허용할 HTTP 메서드
-        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         // 허용할 헤더
         configuration.addAllowedHeader("*");
@@ -55,7 +55,7 @@ public class CorsConfig {
         if (!StringUtils.hasText(originsString)) {
             return List.of("http://localhost:3000");
         }
-        
+
         // 쉼표로 구분된 문자열을 리스트로 변환하고 공백 제거
         return Arrays.stream(originsString.split(","))
                 .map(String::trim)

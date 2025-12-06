@@ -20,7 +20,9 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 400 BAD REQUEST
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "400_001", "비밀번호와 비밀번호 확인이 일치하지 않습니다."),
-    INVALID_TOKEN_FORMAT(HttpStatus.BAD_REQUEST, "400_002", "유효하지 않은 토큰 형식입니다."),
+    INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "400_002", "현재 비밀번호가 일치하지 않습니다."),
+    SAME_PASSWORD(HttpStatus.BAD_REQUEST, "400_003", "새 비밀번호는 현재 비밀번호와 다르게 설정해야 합니다."),
+    INVALID_TOKEN_FORMAT(HttpStatus.BAD_REQUEST, "400_004", "유효하지 않은 토큰 형식입니다."),
 
     // 401 UNAUTHORIZED
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "401_001", "로그인에 실패하였습니다."),

@@ -12,6 +12,7 @@ import com.example.community.Post.application.mapper.GetPostMapper;
 import com.example.community.Post.application.mapper.UpdatePostMapper;
 import com.example.community.Post.application.service.PostService;
 import com.example.community.Post.domain.Post;
+import com.example.community.auth.jwt.JwtUtils;
 import com.example.community.global.response.ApiResponse;
 import com.example.community.global.response.code.status.SuccessStatus;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final JwtUtils jwtUtils;
 
     @PostMapping
     public ApiResponse<CreatePostResponse> createPost(HttpServletRequest httpServletRequest,
@@ -74,6 +76,44 @@ public class PostController {
         return ApiResponse.onSuccess(SuccessStatus.GET_POST, postService.getPost(httpServletRequest, postId));
     }
 
+    /**
+     * 조회수 증가
+     * Redis에만 저장하고, Scheduler가 주기적으로 DB에 동기화
+     */
+    @PostMapping("/{postId}/view")
+    public ApiResponse<Void> incrementViewCount(HttpServletRequest httpServletRequest,
+                                                 @PathVariable Long postId) {
+        String accessToken = jwtUtils.resolveToken(httpServletRequest);
+        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        postService.incrementViewCount(postId, memberId);
+        return ApiResponse.onSuccess(SuccessStatus.INCREMENT_VIEW_COUNT, null);
+    }
+
+    /**
+     * 좋아요 추가
+     * Redis에만 저장하고, Scheduler가 주기적으로 DB에 동기화
+     */
+    @PostMapping("/{postId}/like")
+    public ApiResponse<Void> likePost(HttpServletRequest httpServletRequest,
+                                       @PathVariable Long postId) {
+        String accessToken = jwtUtils.resolveToken(httpServletRequest);
+        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        postService.likePost(postId, memberId);
+        return ApiResponse.onSuccess(SuccessStatus.LIKE_POST, null);
+    }
+
+    /**
+     * 좋아요 취소
+     * Redis와 DB 모두 즉시 삭제
+     */
+    @DeleteMapping("/{postId}/like")
+    public ApiResponse<Void> unlikePost(HttpServletRequest httpServletRequest,
+                                         @PathVariable Long postId) {
+        String accessToken = jwtUtils.resolveToken(httpServletRequest);
+        Long memberId = Long.parseLong(jwtUtils.getUserNameFromToken(accessToken));
+        postService.unlikePost(postId, memberId);
+        return ApiResponse.onSuccess(SuccessStatus.UNLIKE_POST, null);
+    }
 
     /**
      * 1. 해당 요청이 첫 요청인지 판단한다. (cursorValue와 cursorId가 null이면 첫 요청)

@@ -15,6 +15,15 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 30000
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION} # ap-northeast-2 # 서울 리전
+      s3:
+        bucket: ${S3_RESOURCES_BUCKET}
 
   jpa:
     hibernate:
@@ -55,7 +64,8 @@ custom:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 app:
-  default-profile-image-id: 1
+  image:
+    default-profile-key: ${DEFAULT_PROFILE_KEY}
 
 jwt:
   secret: ${JWT_SECRET}

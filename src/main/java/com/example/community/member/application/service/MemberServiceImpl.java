@@ -1,11 +1,8 @@
 package com.example.community.member.application.service;
 
 import com.example.community.auth.jwt.JwtUtils;
-import com.example.community.global.config.AppProperties;
-import com.example.community.global.exception.GeneralException;
-import com.example.community.global.response.code.status.ErrorStatus;
-import com.example.community.image.domain.Image;
-import com.example.community.image.repository.ImageRepository;
+import com.example.community.image.exception.InvalidPathException;
+import com.example.community.image.service.S3ImageService;
 import com.example.community.member.api.dto.InfoResponse;
 import com.example.community.member.api.dto.SignUpRequest;
 import com.example.community.member.api.dto.UpdateInfoRequest;
@@ -13,7 +10,6 @@ import com.example.community.member.api.dto.UpdatePasswordRequest;
 import com.example.community.member.application.mapper.InfoMapper;
 import com.example.community.member.application.mapper.SignUpMapper;
 import com.example.community.member.domain.Member;
-import com.example.community.member.exception.DefaultImageNotFoundException;
 import com.example.community.member.exception.DuplicateEmailException;
 import com.example.community.member.exception.DuplicateNicknameException;
 import com.example.community.member.exception.MemberNotFoundException;
@@ -22,6 +18,7 @@ import com.example.community.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
-    private final ImageRepository imageRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AppProperties appProperties;
     private final JwtUtils jwtUtils;
+    private final S3ImageService s3ImageService;
+
+    @Value("${app.image.default-profile-key:public/image/common/default_profile.png}")
+    private String defaultProfileImageKey;
 
     @Override
     @Transactional(readOnly = true)
@@ -59,22 +58,30 @@ public class MemberServiceImpl implements MemberService {
             throw new PasswordMismatchException();
         }
 
-        String encodedPassword = passwordEncoder.encode(request.password());
-
         if (memberRepository.existsByNickname(request.nickname())) {
             throw new DuplicateNicknameException();
         }
 
-        Long imageId;
-        if (request.imageId() != null && imageRepository.existsById(request.imageId())) {
-            imageId = request.imageId();
-        } else {
-            imageId = appProperties.getDefaultProfileImageId();
+        String finalImageKey = defaultProfileImageKey; // 기본값 설정
+
+        if (request.profileImageObjectKey() != null && !request.profileImageObjectKey().isBlank()) {
+            String tempKey = request.profileImageObjectKey();
+
+            // 보안 검증: 진짜 temp 폴더 파일인지 확인
+            if (!tempKey.startsWith("temp/")) {
+                throw new InvalidPathException("잘못된 이미지 경로입니다.");
+            }
+
+            String newKey = tempKey.replace("temp/", "public/image/");
+
+            // S3 이동 실행 (Copy & Delete)
+            s3ImageService.moveImage(tempKey, newKey);
+
+            finalImageKey = newKey;
         }
 
-        Image profileImage = imageRepository.findById(imageId)
-                .orElseThrow(DefaultImageNotFoundException::new);
-        Member member = SignUpMapper.toMember(request, profileImage, encodedPassword);
+        String encodedPassword = passwordEncoder.encode(request.password());
+        Member member = SignUpMapper.toMember(request, finalImageKey, encodedPassword);
         memberRepository.save(member);
         return member;
     }
@@ -96,10 +103,20 @@ public class MemberServiceImpl implements MemberService {
             member.updateNickname(updateInfoRequest.nickname());
         }
 
-        if (updateInfoRequest.profileImageId() != null) {
-            Image profileImage = imageRepository.findById(updateInfoRequest.profileImageId())
-                    .orElseThrow(() -> new GeneralException(ErrorStatus.IMAGE_NOT_FOUND));
-            member.updateProfileImage(profileImage);
+        if (updateInfoRequest.profileImageObjectKey() != null && !updateInfoRequest.profileImageObjectKey().isBlank()) {
+            String tempKey = updateInfoRequest.profileImageObjectKey();
+
+            // 보안 검증: 진짜 temp 폴더 파일인지 확인
+            if (!tempKey.startsWith("temp/")) {
+                throw new InvalidPathException("잘못된 이미지 경로입니다.");
+            }
+
+            String newKey = tempKey.replace("temp/", "public/image/");
+
+            // S3 이동 실행 (Copy & Delete)
+            s3ImageService.moveImage(tempKey, newKey);
+
+            member.updateProfileImage(newKey);
         }
 
         return member;

@@ -42,9 +42,8 @@ public class Member extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
-    @OneToOne
-    @JoinColumn(name = "image_id", nullable = false)
-    private Image profileImage;
+    @Column(name = "profile_image_key", nullable = false)
+    private String profileImageKey;
 
     @OneToMany(mappedBy = "writer")
     private List<Post> postList = new ArrayList<>();    //  추후 확장시 사용자가 작성한 게시글 목록을 조회해야할 소요가 있으니 양방향 연관관계 설정
@@ -53,8 +52,8 @@ public class Member extends BaseEntity {
         this.nickname = nickname;
     }
 
-    public void updateProfileImage(Image profileImage) {
-        this.profileImage = profileImage;
+    public void updateProfileImage(String profileImageKey) {
+        this.profileImageKey = profileImageKey;
     }
 
     public void updatePassword(String encodedPassword) {

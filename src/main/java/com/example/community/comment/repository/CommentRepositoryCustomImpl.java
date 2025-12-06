@@ -1,9 +1,7 @@
 package com.example.community.comment.repository;
 
-import com.example.community.Post.domain.QPost;
 import com.example.community.comment.api.dto.CommentResponse;
 import com.example.community.comment.domain.QComment;
-import com.example.community.image.domain.QImage;
 import com.example.community.member.domain.QMember;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Repository;
 public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
     private final JPAQueryFactory queryFactory;
     private final QMember writer = QMember.member;
-    private final QImage profileImage = QImage.image;
     private final QComment comment = QComment.comment;
 
     @Override
@@ -34,7 +31,7 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
                         comment.id,
                         writer.nickname,
                         comment.content,
-                        profileImage.objectKey,                     // 작성자 프로필 이미지
+                        writer.profileImageKey,                     // 작성자 프로필 이미지
                         comment.createdAt,
                         comment.updatedAt,                          // 수정된 시각
                         comment.createdAt.ne(comment.updatedAt),    // 생성시간과 수정시간이 다르면 수정된 것
@@ -45,7 +42,6 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
                 ))
                 .from(comment)
                 .join(comment.writer, writer)
-                .leftJoin(writer.profileImage, profileImage)
                 .where(comment.post.id.eq(postId),
                         cursorCondition)
                 .orderBy(orderSpecifier)
@@ -66,7 +62,8 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
                         .or(comment.createdAt.eq(cursorCreatedAt).and(comment.id.lt(cursorId)));
 
             case "oldest":
-                // 등록순 (createdAt ASC, id ASC)
+            case "createdAt":
+                // 등록순/생성순 (createdAt ASC, id ASC)
                 return comment.createdAt.gt(cursorCreatedAt)
                         .or(comment.createdAt.eq(cursorCreatedAt).and(comment.id.gt(cursorId)));
 
@@ -83,6 +80,7 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
                         new OrderSpecifier<>(Order.DESC, comment.id)
                 };
             case "oldest":
+            case "createdAt":
                 return new OrderSpecifier[]{
                         new OrderSpecifier<>(Order.ASC, comment.createdAt),
                         new OrderSpecifier<>(Order.ASC, comment.id)

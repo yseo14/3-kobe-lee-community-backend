@@ -5,7 +5,7 @@ import java.util.List;
 
 public record GetCommentListResponse(
         List<CommentResponse> commentList,
-        LocalDateTime nextCursorCreateAt,
+        LocalDateTime nextCursorCreatedAt,
         Long nextCursorId
 ) {
 }

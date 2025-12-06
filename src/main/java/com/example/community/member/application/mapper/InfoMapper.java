@@ -8,11 +8,11 @@ import java.time.LocalDateTime;
 
 public class InfoMapper {
     public static InfoResponse toInfoResponse(Member member) {
-        return new InfoResponse(member.getEmail(), member.getNickname(), member.getProfileImage().getId());
+        return new InfoResponse(member.getEmail(), member.getNickname(), member.getProfileImageKey());
     }
 
     public static UpdateInfoResponse toUpdateInfoResponse(Member member) {
-        return new UpdateInfoResponse(member.getNickname(), member.getProfileImage().getId());
+        return new UpdateInfoResponse(member.getNickname(), member.getProfileImageKey());
     }
 
     public static UpdatePasswordResponse toUpdatePasswordResponse(LocalDateTime updateAt) {

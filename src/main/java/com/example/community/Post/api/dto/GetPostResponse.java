@@ -16,6 +16,7 @@ public record GetPostResponse(
         Long commentCount,
         Long viewCount,
         boolean viewerCanEdit,
-        boolean viewerCanDelete
+        boolean viewerCanDelete,
+        boolean isLiked
 ) {
 }

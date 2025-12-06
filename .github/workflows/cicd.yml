@@ -117,6 +117,7 @@ jobs:
           echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
           echo "S3_RESOURCES_BUCKET=${{ secrets.S3_RESOURCES_BUCKET }}" >> .env
           echo "DEFAULT_PROFILE_KEY=${{ secrets.DEFAULT_PROFILE_KEY }}" >> .env
+          echo "AWS_REGION=${{ env.AWS_REGION }}" >> .env
           
           
       - name: Prepare Scripts & Zip

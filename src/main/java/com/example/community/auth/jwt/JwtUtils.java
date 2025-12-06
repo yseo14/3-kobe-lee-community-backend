@@ -213,9 +213,27 @@ public class JwtUtils {
     }
 
     public long getRemainingExpiration(String token) {
-        Claims claims = parseClaims(token);
-        Date expiration = claims.getExpiration();
-        long now = System.currentTimeMillis();
-        return expiration.getTime() - now;
+        if (token == null || token.trim().isEmpty()) {
+            return 0;
+        }
+        
+        try {
+            Claims claims = parseClaims(token);
+            Date expiration = claims.getExpiration();
+            long now = System.currentTimeMillis();
+            long remaining = expiration.getTime() - now;
+            // 만료된 토큰의 경우 0 반환 (음수 방지)
+            return Math.max(remaining, 0);
+        } catch (ExpiredJwtException e) {
+            // 만료된 토큰의 경우 클레임에서 만료 시간 추출
+            Date expiration = e.getClaims().getExpiration();
+            long now = System.currentTimeMillis();
+            long remaining = expiration.getTime() - now;
+            return Math.max(remaining, 0);
+        } catch (Exception e) {
+            // 파싱 실패 시 0 반환
+            log.warn("Failed to get remaining expiration for token", e);
+            return 0;
+        }
     }
 }

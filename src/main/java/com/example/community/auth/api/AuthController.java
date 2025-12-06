@@ -45,8 +45,20 @@ public class AuthController {
     }
 
     @DeleteMapping
-    public ApiResponse<LogoutResponse> logout(HttpServletRequest request) {
+    public ApiResponse<LogoutResponse> logout(HttpServletRequest request,
+                                             HttpServletResponse httpServletResponse) {
         LogoutResponse response = authService.logout(request);
+        
+        // RefreshToken 쿠키 삭제
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)  // 즉시 삭제
+                .sameSite("Lax")
+                .build();
+        httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        
         return ApiResponse.onSuccess(SuccessStatus.LOGOUT_SUCCESS, response);
     }
 

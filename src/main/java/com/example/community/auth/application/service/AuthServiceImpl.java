@@ -10,6 +10,7 @@ import com.example.community.auth.application.mapper.LogoutMapper;
 import com.example.community.auth.application.mapper.RefreshMapper;
 import com.example.community.auth.jwt.JwtToken;
 import com.example.community.auth.jwt.JwtUtils;
+import com.example.community.auth.jwt.exception.InvalidTokenException;
 import com.example.community.global.redis.RedisDao;
 import com.example.community.global.response.code.status.ErrorStatus;
 import com.example.community.member.domain.Member;
@@ -60,12 +61,45 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LogoutResponse logout(HttpServletRequest request) {
         String accessToken = jwtUtils.resolveToken(request);
+        
+        // AccessToken이 null이거나 비어있는 경우 처리
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            throw new InvalidTokenException(ErrorStatus.EMPTY_TOKEN);
+        }
+        
+        // AccessToken 유효성 검증 (만료된 토큰도 허용 - 로그아웃은 만료된 토큰으로도 가능해야 함)
+        try {
+            jwtUtils.validateToken(accessToken);
+        } catch (InvalidTokenException e) {
+            // 만료된 토큰인 경우에도 로그아웃은 진행 (블랙리스트 처리 생략)
+            if (e.getErrorReasonHttpStatus().getCode().equals(ErrorStatus.EXPIRED_TOKEN.getCode())) {
+                // 만료된 토큰의 경우 memberId 추출 시도
+                try {
+                    String memberId = jwtUtils.getUserNameFromToken(accessToken);
+                    if (memberId != null && !memberId.trim().isEmpty()) {
+                        jwtUtils.deleteRefreshToken(memberId);
+                    }
+                } catch (Exception ex) {
+                    // memberId 추출 실패 시 무시하고 진행
+                }
+                return LogoutMapper.toLogoutResponse();
+            }
+            // 다른 유효하지 않은 토큰은 예외 발생
+            throw e;
+        }
+        
         long remainingTime = jwtUtils.getRemainingExpiration(accessToken);
         String memberId = jwtUtils.getUserNameFromToken(accessToken);
-        jwtUtils.deleteRefreshToken(memberId);
+        
+        // RefreshToken 삭제
+        if (memberId != null && !memberId.trim().isEmpty()) {
+            jwtUtils.deleteRefreshToken(memberId);
+        }
 
-        // 만료시간까지 남은 시간 동안 블랙리스트에 저장
-        redisDao.setValues("blacklist:" + accessToken, "logout", Duration.ofMillis(remainingTime));
+        // 만료시간까지 남은 시간 동안 블랙리스트에 저장 (만료된 토큰이 아닌 경우만)
+        if (remainingTime > 0) {
+            redisDao.setValues("blacklist:" + accessToken, "logout", Duration.ofMillis(remainingTime));
+        }
 
         return LogoutMapper.toLogoutResponse();
     }

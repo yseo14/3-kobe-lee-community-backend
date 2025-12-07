@@ -22,6 +22,12 @@ Locker Room: 농구인들을 위한 오프 코트(Off-Court) 커뮤니티 <p>
 - **AWS ElatiCache Valkey**
 - **AWS S3** (이미지 및 배포 스크립트 저장)
 
+## 🔗 Frontend Repo
+- <a href="https://github.com/yseo14/3-kobe-lee-community-frontend?tab=readme-ov-file">Github-Frontend</a>
+
+## 🎥 시연 영상
+- <a href="https://drive.google.com/file/d/1RWTzd4tt3XtcALIfXVYcoBXL1g9irdBO/view?usp=drive_link">구글 드라이브</a>
+
 ## ✨ 주요 기능
 
 ### 인증/인가

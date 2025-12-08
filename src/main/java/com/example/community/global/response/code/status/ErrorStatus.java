@@ -25,7 +25,7 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_TOKEN_FORMAT(HttpStatus.BAD_REQUEST, "400_004", "유효하지 않은 토큰 형식입니다."),
 
     // 401 UNAUTHORIZED
-    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "401_001", "로그인에 실패하였습니다."),
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "401_001", "이메일과 비밀번호를 확인해주세요."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "401_002", "토큰이 만료되었습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "401_003", "토큰이 유효하지 않습니다."),
     UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, "401_004", "지원하지 않는 JWT 토큰입니다."),

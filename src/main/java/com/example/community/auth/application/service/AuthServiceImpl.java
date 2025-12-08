@@ -14,7 +14,6 @@ import com.example.community.auth.jwt.exception.InvalidTokenException;
 import com.example.community.global.redis.RedisDao;
 import com.example.community.global.response.code.status.ErrorStatus;
 import com.example.community.member.domain.Member;
-import com.example.community.member.exception.MemberNotFoundException;
 import com.example.community.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
@@ -43,7 +42,8 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         String email = request.email();
         String rawPassword = request.password();
-        Member member = memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(LoginFailedException::new);
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
             throw new LoginFailedException();

@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -248,8 +249,63 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostPreview> getPostList(String sort, int limit, Object cursorValue, Long cursorId) {
+        // DB에서 게시글 목록 조회
+        List<PostPreview> dbPostList = postRepository.findPostsWithCursor(sort, limit, cursorValue, cursorId);
 
-        return postRepository.findPostsWithCursor(sort, limit, cursorValue, cursorId);
+        if (dbPostList.isEmpty()) {
+            return dbPostList;
+        }
+
+        // 성능 최적화: 배치 조회를 위한 키 리스트 생성
+        List<String> viewCountKeys = new ArrayList<>();
+        List<String> likeKeys = new ArrayList<>();
+        Map<Long, String> postIdToViewKeyMap = new HashMap<>();
+        Map<Long, String> postIdToLikeKeyMap = new HashMap<>();
+
+        for (PostPreview postPreview : dbPostList) {
+            Long postId = postPreview.postId();
+            String viewCountKey = "post:view:" + postId;
+            String likeKey = "post:like:" + postId;
+            
+            viewCountKeys.add(viewCountKey);
+            likeKeys.add(likeKey);
+            postIdToViewKeyMap.put(postId, viewCountKey);
+            postIdToLikeKeyMap.put(postId, likeKey);
+        }
+
+        // 배치 조회: Redis에서 한 번에 조회수와 좋아요 개수 조회
+        Map<String, Long> redisViewCounts = redisDao.batchGetViewCounts(viewCountKeys);
+        Map<String, Long> redisLikeCounts = redisDao.batchGetLikeCounts(likeKeys);
+
+        // Redis 값 합산하여 업데이트
+        return dbPostList.stream()
+                .map(postPreview -> {
+                    Long postId = postPreview.postId();
+                    String viewCountKey = postIdToViewKeyMap.get(postId);
+                    String likeKey = postIdToLikeKeyMap.get(postId);
+
+                    // Redis에서 조회한 값 가져오기
+                    Long redisViewCount = redisViewCounts.getOrDefault(viewCountKey, 0L);
+                    Long redisLikeCount = redisLikeCounts.getOrDefault(likeKey, 0L);
+
+                    // DB 값 + Redis 값 합산
+                    Long totalViewCount = postPreview.viewCount() + redisViewCount;
+                    Long totalLikeCount = postPreview.likeCount() + redisLikeCount;
+
+                    // Redis 값이 합산된 새로운 PostPreview 생성
+                    return new PostPreview(
+                            postPreview.postId(),
+                            postPreview.title(),
+                            totalLikeCount,
+                            postPreview.commentCount(),
+                            totalViewCount,
+                            postPreview.memberId(),
+                            postPreview.profileImageKey(),
+                            postPreview.nickname(),
+                            postPreview.createdAt()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

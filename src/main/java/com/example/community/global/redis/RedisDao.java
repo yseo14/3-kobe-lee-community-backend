@@ -1,9 +1,12 @@
 package com.example.community.global.redis;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SetOperations;
@@ -175,5 +178,87 @@ public class RedisDao {
             }
         }
         return keys;
+    }
+
+    // ========== 배치 조회 메서드 (성능 최적화) ==========
+
+    /**
+     * 여러 게시글의 조회수를 한 번에 조회 (MGET)
+     * @param keys 조회수 키 리스트 (예: ["post:view:1", "post:view:2", ...])
+     * @return 키와 조회수 값의 Map (키가 없으면 null)
+     */
+    public Map<String, Long> batchGetViewCounts(List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        // MGET으로 여러 키를 한 번에 조회
+        List<Object> redisValues = values.multiGet(keys);
+        Map<String, Long> result = new HashMap<>();
+
+        for (int i = 0; i < keys.size(); i++) {
+            String key = keys.get(i);
+            Object value = (redisValues != null && i < redisValues.size()) ? redisValues.get(i) : null;
+            Long viewCount = parseLong(value);
+            if (viewCount != null) {
+                result.put(key, viewCount);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 여러 게시글의 좋아요 개수를 한 번에 조회 (Pipeline 사용)
+     * @param keys 좋아요 키 리스트 (예: ["post:like:1", "post:like:2", ...])
+     * @return 키와 좋아요 개수의 Map (키가 없으면 0)
+     */
+    public Map<String, Long> batchGetLikeCounts(List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        // Pipeline을 사용하여 여러 SCARD 명령을 한 번에 실행
+        List<Object> results = redisTemplate.executePipelined(
+                (RedisCallback<Object>) connection -> {
+                    for (String key : keys) {
+                        connection.sCard(key.getBytes());
+                    }
+                    return null;
+                }
+        );
+
+        Map<String, Long> result = new HashMap<>();
+        for (int i = 0; i < keys.size(); i++) {
+            String key = keys.get(i);
+            Object count = (results != null && i < results.size()) ? results.get(i) : null;
+            Long likeCount = parseLong(count);
+            result.put(key, likeCount != null ? likeCount : 0L);
+        }
+
+        return result;
+    }
+
+    /**
+     * Object를 Long으로 파싱 (배치 조회용)
+     */
+    private Long parseLong(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Long) {
+            return (Long) obj;
+        }
+        if (obj instanceof Integer) {
+            return ((Integer) obj).longValue();
+        }
+        if (obj instanceof String) {
+            try {
+                return Long.parseLong((String) obj);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 }

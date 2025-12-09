@@ -98,5 +98,5 @@ src/main/java/com/example/community/
 <img width="1208" height="753" alt="community_erd" src="https://github.com/user-attachments/assets/f9049605-3ce5-4d43-ae0c-96503b151c40" />
 
 ## 👷🏻‍♂️ Infra Architecture
-<img width="9520" height="5240" alt="community_architecture" src="https://github.com/user-attachments/assets/1ad6a3eb-4306-47aa-b9eb-8c6e2fa4da95" />
+<img width="2371" height="1301" alt="community_architecture_v2 drawio" src="https://github.com/user-attachments/assets/99332f9f-ab78-41cc-8173-73afea01bbe5" />
 

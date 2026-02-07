@@ -85,4 +85,14 @@ public class Post extends BaseEntity {
             this.commentCount--;
         }
     }
+
+    public void increaseLikeCount(Long count) {
+        this.likeCount += count;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
 }

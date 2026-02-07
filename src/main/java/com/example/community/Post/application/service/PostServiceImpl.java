@@ -414,12 +414,13 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void unlikePost(Long postId, Long memberId) {
-        // 게시글 존재 여부 확인
-        postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        // X-Lock을 즉시 획득 (다른 트랜잭션의 S-Lock → X-Lock 승격으로 인한 데드락 방지)
+        Post post = postRepository.findByIdWithLock(postId)
+                .orElseThrow(PostNotFoundException::new);
 
         // Write-Through: Redis와 DB 모두 즉시 삭제
         String likeKey = "post:like:" + postId;
-        
+
         // 1. Redis에서 제거 시도 (있으면 제거, 없으면 그냥 넘어감)
         redisDao.removeLike(likeKey, memberId);
 
@@ -427,11 +428,11 @@ public class PostServiceImpl implements PostService {
         //    - Scheduler가 이미 Redis → DB 동기화 후 Redis에서 제거했을 수 있음
         MemberPostLikeId id = new MemberPostLikeId(memberId, postId);
         boolean existsInDb = memberPostLikeRepository.existsById(id);
-        
+
         if (existsInDb) {
             memberPostLikeRepository.deleteById(id);
-            // 게시글 좋아요 개수 감소
-            postRepository.decreaseLikeCount(postId, 1L);
+            // 이미 X-Lock 보유 중이므로 즉시 실행
+            post.decreaseLikeCount();
         }
     }
 }

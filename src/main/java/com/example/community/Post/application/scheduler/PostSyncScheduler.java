@@ -1,5 +1,6 @@
 package com.example.community.Post.application.scheduler;
 
+import com.example.community.Post.domain.Post;
 import com.example.community.Post.repository.PostRepository;
 import com.example.community.global.redis.RedisDao;
 import com.example.community.member.domain.Member;
@@ -122,8 +123,9 @@ public class PostSyncScheduler {
                         continue;
                     }
 
-                    // 게시글 존재 여부 확인
-                    if (!postRepository.existsById(postId)) {
+                    // X-Lock을 즉시 획득 (unlikePost와의 데드락 방지)
+                    Post post = postRepository.findByIdWithLock(postId).orElse(null);
+                    if (post == null) {
                         // 존재하지 않는 게시글의 좋아요는 삭제
                         redisDao.deleteValues(key);
                         continue;
@@ -147,7 +149,7 @@ public class PostSyncScheduler {
                                     continue; // 이미 존재하면 스킵
                                 }
 
-                                // Member와 Post 엔티티 조회
+                                // Member 엔티티 조회
                                 Member member = memberRepository.findById(memberId).orElse(null);
                                 if (member == null) {
                                     continue; // 존재하지 않는 멤버는 스킵
@@ -157,7 +159,7 @@ public class PostSyncScheduler {
                                 MemberPostLike memberPostLike = new MemberPostLike(
                                         id,
                                         member,
-                                        postRepository.findById(postId).orElse(null),
+                                        post,
                                         LocalDateTime.now()
                                 );
 
@@ -170,8 +172,8 @@ public class PostSyncScheduler {
                         // 배치 인서트 수행
                         if (!likesToInsert.isEmpty()) {
                             memberPostLikeRepository.saveAll(likesToInsert);
-                            // 게시글 좋아요 개수 증가
-                            postRepository.increaseLikeCount(postId, (long) likesToInsert.size());
+                            // 이미 X-Lock 보유 중이므로 즉시 실행
+                            post.increaseLikeCount((long) likesToInsert.size());
                             totalSynced += likesToInsert.size();
                             likesToInsert.clear();
                         }
